@@ -146,7 +146,7 @@
       position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
       padding:10px 12px; border-radius:14px;
       background:#000000aa; color:#fff; font-size:13px;
-      border:1px solid #ffffff2a; z-index:5;
+      border:1px solid #ffffff2a; z-index:50;
       opacity:0; pointer-events:none; transition:opacity .2s ease;
     }
     .toast.show{opacity:1}
@@ -158,9 +158,8 @@
 
     /* ===== Password lock UI ===== */
     button:disabled{opacity:.55; cursor:not-allowed}
-
     .lock{
-      position:fixed; inset:0; z-index:10;
+      position:fixed; inset:0; z-index:60;
       display:flex; align-items:center; justify-content:center;
       padding:20px;
       background: radial-gradient(800px 500px at 50% 20%, #ffffff14, transparent 60%),
@@ -185,8 +184,155 @@
     }
     .lockRow input:focus{border-color:#7cf7ff55}
     .lockErr{margin:10px 0 0; color:#ffb2d8; font-size:12px; min-height:16px}
+
+    /* ===== Modal (Gift / Video) ===== */
+    .modal{
+      position:fixed; inset:0; z-index:70;
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(8px);
+    }
+    .modal.hidden{display:none}
+    .modalCard{
+      width:min(820px, 100%);
+      border:1px solid #ffffff2a;
+      border-radius:22px;
+      background: linear-gradient(135deg, #0e1b33f0, #0b1326f0);
+      box-shadow: 0 30px 100px #00000099;
+      overflow:hidden;
+    }
+    .modalHead{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:14px 16px;
+      border-bottom:1px solid #ffffff1f;
+    }
+    .modalTitle{
+      font-size:15px; color:var(--text);
+      display:flex; align-items:center; gap:10px;
+    }
+    .closeBtn{
+      border:1px solid #ffffff2a;
+      background:#ffffff10;
+      color:#fff;
+      padding:8px 10px;
+      border-radius:14px;
+      cursor:pointer;
+    }
+    .modalBody{
+      padding:14px 16px 18px;
+    }
+    .imgGrid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 720px){
+      .imgGrid{grid-template-columns:1fr}
+    }
+    .imgCard{
+      border:1px solid #ffffff22;
+      border-radius:18px;
+      overflow:hidden;
+      background:#ffffff08;
+    }
+    .imgCard img{
+      width:100%;
+      height:360px;
+      object-fit:cover;
+      display:block;
+    }
+    @media (max-width: 720px){
+      .imgCard img{height:320px}
+    }
+    .imgCap{
+      padding:10px 12px;
+      color:var(--muted);
+      font-size:12px;
+      border-top:1px solid #ffffff18;
+    }
+    .modalHint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    /* ===== Video modal ===== */
+    .videoWrap{
+      border:1px solid #ffffff22;
+      border-radius:18px;
+      overflow:hidden;
+      background:#000;
+    }
+    .videoWrap video{
+      width:100%;
+      height:auto;
+      display:block;
+      background:#000;
+    }
+    .videoNote{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    /* ===== Unlock celebration overlay ===== */
+    .celebrate{
+      position:fixed; inset:0; z-index:65;
+      display:flex; align-items:center; justify-content:center;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .18s ease;
+    }
+    .celebrate.show{opacity:1}
+    .celebrateCard{
+      border:1px solid #ffffff2a;
+      border-radius:22px;
+      background: linear-gradient(135deg, #0e1b33f0, #0b1326f0);
+      box-shadow: 0 30px 90px #00000099;
+      padding:16px 18px;
+      text-align:center;
+      max-width:min(520px, 92vw);
+    }
+    .celebrateTitle{
+      font-size:26px;
+      letter-spacing:.6px;
+      margin:0;
+    }
+    .celebrateSub{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .confetti{
+      position:absolute; inset:0;
+      overflow:hidden;
+      pointer-events:none;
+    }
+    .confetti i{
+      position:absolute;
+      top:-16px;
+      width:10px;
+      height:16px;
+      border-radius:3px;
+      opacity:.95;
+      background: var(--c, #7cf7ff);
+      transform: translate3d(0,-10px,0) rotate(0deg);
+      animation: fall var(--dur, 1.5s) linear var(--delay, 0s) forwards;
+    }
+    @keyframes fall{
+      0%   { transform: translate3d(var(--dx,0px), -20px, 0) rotate(0deg);   opacity:1; }
+      100% { transform: translate3d(var(--dx,0px), calc(100vh + 40px), 0) rotate(720deg); opacity:0; }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .celebrate{display:none}
+      .confetti{display:none}
+    }
   </style>
 </head>
+
 <body>
   <canvas id="fx"></canvas>
 
@@ -201,7 +347,8 @@
         <h1 id="title">给 <span id="toName">你</span> 的跨年礼物</h1>
         <p class="sub" id="subText">
           输入你的生日（YYYYMMDD）解锁。<br/>
-          （可选）如果你想给每个人一个“专属链接”，用 ?k=cici 这种方式。
+          （可选）如果你想给每个人一个“专属链接”，用 ?k=cici 这种方式。<br/>
+          解锁后点击 🎁 礼物照片，可以看到“我们俩”的照片；点击 🎁 现在拆礼物，会播放专属视频。
         </p>
       </div>
 
@@ -226,6 +373,7 @@
           <div class="btns">
             <button class="primary" id="openBtn">🎁 现在拆礼物</button>
             <button id="newWishBtn">✨ 换一句祝福</button>
+            <button id="giftBtn">🎁 礼物照片</button>
             <button id="copyBtn">🔗 复制链接</button>
             <button id="boomBtn">🎆 放一次烟花</button>
           </div>
@@ -281,6 +429,47 @@
     </div>
   </div>
 
+  <!-- Unlock Celebration -->
+  <div class="celebrate" id="celebrate">
+    <div class="confetti" id="confetti"></div>
+    <div class="celebrateCard">
+      <p class="celebrateTitle" id="celebrateTitle">🎉 新年快乐</p>
+      <p class="celebrateSub" id="celebrateSub">解锁成功</p>
+    </div>
+  </div>
+
+  <!-- Gift Photo Modal -->
+  <div class="modal hidden" id="giftModal" aria-hidden="true">
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="giftModalTitle">
+      <div class="modalHead">
+        <div class="modalTitle" id="giftModalTitle">🎁 礼物照片</div>
+        <button class="closeBtn" id="closeGiftBtn">关闭</button>
+      </div>
+      <div class="modalBody">
+        <div class="imgGrid" id="giftImgGrid"></div>
+        <div class="modalHint" id="giftHint"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Gift Modal -->
+  <div class="modal hidden" id="videoModal" aria-hidden="true">
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+      <div class="modalHead">
+        <div class="modalTitle" id="videoModalTitle">🎥 视频礼物</div>
+        <button class="closeBtn" id="closeVideoBtn">关闭</button>
+      </div>
+      <div class="modalBody">
+        <div class="videoWrap">
+          <video id="giftVideo" controls playsinline preload="metadata"></video>
+        </div>
+        <div class="videoNote" id="videoNote">
+          如果你的视频无法自动播放：点一下播放键即可（iPhone 有时会限制自动播放声音）。
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast">已复制</div>
 
 <script>
@@ -297,6 +486,7 @@ document.getElementById("fromName").textContent = from;
 const typedEl = document.getElementById("typed");
 const openBtn = document.getElementById("openBtn");
 const newWishBtn = document.getElementById("newWishBtn");
+const giftBtn = document.getElementById("giftBtn");
 const copyBtn = document.getElementById("copyBtn");
 const boomBtn = document.getElementById("boomBtn");
 const dd = document.getElementById("dd");
@@ -350,7 +540,6 @@ function launch(x, y){
     });
   }
 }
-
 function burst(times=5){
   for(let i=0;i<times;i++){
     const x = rand(W*0.15, W*0.85);
@@ -358,7 +547,6 @@ function burst(times=5){
     launch(x,y);
   }
 }
-
 function step(){
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = "rgba(0,0,0,0.18)";
@@ -396,12 +584,23 @@ function showToast(txt){
 }
 
 /** ----------------------------
- * Per-person data (每个人独立内容)
- * 你只要改这里：birthday / name / wishes / newYear
+ * ✅ 每个人独立内容 + 礼物图片 + 专属视频
+ *
+ * 你需要放文件：
+ *   图片：assets/img/me.jpg + assets/img/cici.jpg ...
+ *   视频：assets/video/cici.mp4 ...
  * ---------------------------- */
 const PEOPLE_BY_BDAY = {
   "20050309": {
     name: "Steven",
+    video: "assets/video/steven.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × Steven）",
+      hint: "把图片放到 assets/img/ 下，然后改路径即可。",
+      images: [
+        { src: "assets/img/steven.jpg", caption: "你（Steven）" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`🎁 ${n}，${y} 送你一句最重要的：\n\n别把所有事都一个人扛。\n你可以强，但也值得被照顾。\n\n—— ${f}`,
       (n,y,f)=>`🌙 ${n}，${y} 想送你一种“松弛”：\n\n把焦虑交给行动\n把目标拆成今天\n把自己当成队友\n\n—— ${f}`,
@@ -409,64 +608,128 @@ const PEOPLE_BY_BDAY = {
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 生活有光\n- 代码顺滑\n- 睡眠安稳\n- 心里更松一点\n\n—— ${f}`
   },
+
   "20040210": {
     name: "CiCi",
+    video: "assets/video/cici.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × CiCi）",
+      images: [
+        { src: "assets/img/cici.jpeg", caption: "Us" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`🧧 ${n}，${y} 给你三句“放心”：\n\n放心去尝试\n放心去发光\n放心去被爱\n\n—— ${f}`,
       (n,y,f)=>`✨ ${n}，愿你 ${y}：\n\n遇到好人\n做成好事\n得到好消息\n\n—— ${f}`
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 事事顺意\n- 好运常在\n- 开心更久\n\n—— ${f}`
   },
+
   "20040611": {
     name: "Manda",
+    video: "assets/video/manda.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × Manda）",
+      images: [
+        { src: "assets/img/manda.jpeg", caption: "Us" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`🌙 ${n}，愿你 ${y}：\n\n把热爱变成作品\n把努力变成结果\n把温柔留给自己\n\n—— ${f}`,
       (n,y,f)=>`🎁 ${n}，${y} 送你一个祝福：\n\n你值得被认真对待。\n每一步都算数。\n\n—— ${f}`
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 平安喜乐\n- 心想事成\n\n—— ${f}`
   },
+
   "20040510": {
     name: "Michelle",
+    video: "assets/video/michelle.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × Michelle）",
+      images: [
+        { src: "assets/img/michelle.jpeg", caption: "Us" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`✨ ${n}，${y} 送你三个“允许”：\n\n允许自己慢一点\n允许偶尔不完美\n允许被爱、被支持\n\n—— ${f}`,
       (n,y,f)=>`🎇 ${n}，愿你 ${y}：\n\n更清醒，也更柔软\n更坚定，也更轻松\n\n—— ${f}`
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 温柔坚定\n- 好运加倍\n\n—— ${f}`
   },
+
   "20030717": {
     name: "哥",
+    video: "assets/video/ge.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × 哥）",
+      images: [
+        { src: "assets/img/ge.jpeg",  caption: "Us" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`🧧 ${n}，${y} 祝你：\n\n顺风顺水\n发财发福（也别太累）\n\n—— ${f}`,
       (n,y,f)=>`🎁 ${n}，愿你 ${y}：\n\n少一点烦心事\n多一点好消息\n\n—— ${f}`
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 事业顺利\n- 家里平安\n\n—— ${f}`
   },
+
   "20041105": {
     name: "杨旭",
+    video: "assets/video/yangxu.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × 杨旭）",
+      images: [
+        { src: "assets/img/yangxu.jpeg", caption: "我们）" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`✨ ${n}，愿你 ${y}：\n\n一直有底气\n一直有选择\n一直有热爱\n\n—— ${f}`,
       (n,y,f)=>`🎇 ${n}，好运指令：\n\n保持你的节奏。\n你会越走越稳。\n\n—— ${f}`
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 一路开挂\n- 心情轻松\n\n—— ${f}`
   },
+
   "19800806": {
     name: "爸",
+    video: "assets/video/dad.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × 爸）",
+      images: [
+        { src: "assets/img/dad.jpeg", caption: "爸" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`🧧 ${n}，${y} 祝您：\n\n身体健康\n事事顺心\n天天开心\n\n—— ${f}`,
       (n,y,f)=>`🎁 ${n}，愿您 ${y}：\n\n少操心，多休息\n平平安安，顺顺利利\n\n—— ${f}`
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿您在 ${y}：\n- 平安健康\n- 福气满满\n\n—— ${f}`
   },
+
   "19791120": {
     name: "妈",
+    video: "assets/video/mom.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × 妈）",
+      images: [
+        { src: "assets/img/mom.jpeg", caption: "妈" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`🧧 ${n}，${y} 祝您：\n\n身体健康\n笑口常开\n万事如意\n\n—— ${f}`,
       (n,y,f)=>`🎁 ${n}，愿您 ${y}：\n\n少烦恼，多开心\n每天都轻轻松松\n\n—— ${f}`
     ],
     newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿您在 ${y}：\n- 健康平安\n- 开开心心\n\n—— ${f}`
   },
+
   "20050401": {
     name: "夏仁宇",
+    video: "assets/video/xiarenyu.mp4",
+    gift: {
+      title: "🎁 我们的照片（Steven × 夏仁宇）",
+      images: [
+        { src: "assets/img/xiarenyu.jpg",  caption: "你（夏仁宇）" }
+      ]
+    },
     wishes: [
       (n,y,f)=>`🌙 ${n}，愿你 ${y}：\n\n把心事交给月光\n把目标交给今天\n把结果交给时间\n\n—— ${f}`,
       (n,y,f)=>`🎇 ${n}，好运来得很具体：\n\n好机会、好状态、好心情\n全都在路上。\n\n—— ${f}`
@@ -477,7 +740,6 @@ const PEOPLE_BY_BDAY = {
 
 /** ----------------------------
  * Optional: 专属链接模式 ?k=xxx
- * 例：?k=cici 只能用 cici 的生日解锁
  * ---------------------------- */
 const KEY_TO_BDAY = {
   steven: "20050309",
@@ -503,7 +765,7 @@ const passInput = document.getElementById("passInput");
 const unlockBtn = document.getElementById("unlockBtn");
 const lockErr = document.getElementById("lockErr");
 
-const lockedButtons = [openBtn, newWishBtn, copyBtn, boomBtn];
+const lockedButtons = [openBtn, newWishBtn, giftBtn, copyBtn, boomBtn];
 lockedButtons.forEach(b => b.disabled = true);
 
 let unlocked = false;
@@ -515,13 +777,55 @@ let activeProfile = null;
 function normalizeBirthday(input){
   return String(input || "").trim().replace(/\D/g, "");
 }
-
 function setHint(msg){ lockErr.textContent = msg || ""; }
-
 function applyName(name){
   resolvedName = name;
   const el = document.getElementById("toName");
   if (el) el.textContent = name;
+}
+
+/** ----------------------------
+ * ✅ 解锁后：新年快乐 + 礼花彩纸 UI
+ * ---------------------------- */
+const celebrateEl = document.getElementById("celebrate");
+const confettiEl = document.getElementById("confetti");
+const celebrateTitle = document.getElementById("celebrateTitle");
+const celebrateSub = document.getElementById("celebrateSub");
+
+function showCelebration(){
+  celebrateTitle.textContent = `🎉 新年快乐，${resolvedName}！`;
+  celebrateSub.textContent = "解锁成功～";
+
+  confettiEl.innerHTML = "";
+  const colors = ["#7cf7ff", "#ff77e1", "#ffd36e", "#7cffb8", "#bda7ff", "#ffffff"];
+  const N = 80;
+  for(let i=0;i<N;i++){
+    const p = document.createElement("i");
+    const left = Math.random() * 100;
+    const dx = (Math.random()*2 - 1) * 120;
+    const dur = 1.2 + Math.random() * 1.1;
+    const delay = Math.random() * 0.25;
+    const c = colors[Math.floor(Math.random()*colors.length)];
+    const w = 6 + Math.random()*8;
+    const h = 10 + Math.random()*14;
+
+    p.style.left = left + "vw";
+    p.style.setProperty("--dx", dx + "px");
+    p.style.setProperty("--dur", dur + "s");
+    p.style.setProperty("--delay", delay + "s");
+    p.style.setProperty("--c", c);
+    p.style.width = w + "px";
+    p.style.height = h + "px";
+    confettiEl.appendChild(p);
+  }
+
+  celebrateEl.classList.add("show");
+  burst(10);
+
+  setTimeout(()=>{
+    celebrateEl.classList.remove("show");
+    confettiEl.innerHTML = "";
+  }, 1400);
 }
 
 function typeOut(text){
@@ -563,6 +867,8 @@ function afterUnlock(){
   lockEl.style.display = "none";
   lockedButtons.forEach(b => b.disabled = false);
 
+  showCelebration();
+
   document.getElementById("extra").classList.remove("hidden");
   burst(3);
 
@@ -591,7 +897,6 @@ passInput.addEventListener("input", () => {
   }
 });
 
-// 初始提示
 if (forcedProfile) setHint(`此链接属于「${forcedProfile.name}」，请输入 TA 的 8 位生日`);
 else setHint("请输入 8 位生日：YYYYMMDD");
 
@@ -604,7 +909,6 @@ function tryUnlock(){
     return;
   }
 
-  // 专属链接模式：必须匹配指定生日
   if (forcedProfile) {
     if (normalized !== forcedBday) {
       lockErr.textContent = "生日不匹配这个专属链接，再试一次～";
@@ -617,7 +921,6 @@ function tryUnlock(){
     return;
   }
 
-  // 通用模式：用生日找人
   const profile = PEOPLE_BY_BDAY[normalized];
   if (!profile) {
     lockErr.textContent = "这个生日不在名单里（或你输错了），再试一次～";
@@ -634,11 +937,6 @@ unlockBtn.addEventListener("click", tryUnlock);
 passInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") tryUnlock(); });
 
 /** Buttons behavior (only after unlocked) */
-openBtn.addEventListener("click", ()=>{
-  if (!unlocked) return;
-  newWish();
-  burst(6);
-});
 newWishBtn.addEventListener("click", ()=>{
   if (!unlocked) return;
   newWish();
@@ -653,9 +951,7 @@ boomBtn.addEventListener("click", ()=>{
 copyBtn.addEventListener("click", async ()=>{
   const url = new URL(location.href);
   url.searchParams.set("from", from);
-  url.searchParams.delete("to");
 
-  // 如果当前是专属链接模式，就保留 k；否则删除 k（同链接给所有人）
   if (forcedProfile) url.searchParams.set("k", personKey);
   else url.searchParams.delete("k");
 
@@ -664,6 +960,116 @@ copyBtn.addEventListener("click", async ()=>{
     showToast(forcedProfile ? "已复制专属链接 ✅" : "已复制通用链接 ✅");
   }catch(e){
     showToast("复制失败：请手动复制地址栏");
+  }
+});
+
+/** ----------------------------
+ * ✅ Gift Photo Modal
+ * ---------------------------- */
+const giftModal = document.getElementById("giftModal");
+const closeGiftBtn = document.getElementById("closeGiftBtn");
+const giftImgGrid = document.getElementById("giftImgGrid");
+const giftModalTitle = document.getElementById("giftModalTitle");
+const giftHint = document.getElementById("giftHint");
+
+function openGiftModal(){
+  if (!unlocked || !activeProfile) {
+    showToast("先解锁再打开礼物哦～");
+    return;
+  }
+  const gift = activeProfile.gift || null;
+
+  giftModalTitle.textContent = gift?.title || "🎁 礼物照片";
+  giftHint.textContent = gift?.hint || "";
+
+  giftImgGrid.innerHTML = "";
+
+  const imgs = gift?.images || [];
+  if (!imgs.length){
+    giftImgGrid.innerHTML = `<div style="color:var(--muted);font-size:13px;line-height:1.7;">
+      没有配置图片。请在 PEOPLE_BY_BDAY 里给这个人加上 gift.images 的路径。
+    </div>`;
+  }else{
+    imgs.forEach(item=>{
+      const card = document.createElement("div");
+      card.className = "imgCard";
+      card.innerHTML = `
+        <img src="${item.src}" alt="${item.caption || "gift image"}" loading="lazy" />
+        <div class="imgCap">${item.caption || ""}</div>
+      `;
+      giftImgGrid.appendChild(card);
+    });
+  }
+
+  giftModal.classList.remove("hidden");
+  giftModal.setAttribute("aria-hidden", "false");
+}
+function closeGiftModal(){
+  giftModal.classList.add("hidden");
+  giftModal.setAttribute("aria-hidden", "true");
+}
+giftBtn.addEventListener("click", openGiftModal);
+closeGiftBtn.addEventListener("click", closeGiftModal);
+giftModal.addEventListener("click", (e)=>{
+  if (e.target === giftModal) closeGiftModal();
+});
+
+/** ----------------------------
+ * ✅ Video Gift Modal (每个人不同视频)
+ * ---------------------------- */
+const videoModal = document.getElementById("videoModal");
+const closeVideoBtn = document.getElementById("closeVideoBtn");
+const videoModalTitle = document.getElementById("videoModalTitle");
+const giftVideo = document.getElementById("giftVideo");
+
+function openVideoModal(){
+  if (!unlocked || !activeProfile) {
+    showToast("先解锁再拆礼物哦～");
+    return;
+  }
+
+  const src = activeProfile.video || "";
+  if (!src) {
+    showToast("这个人还没配置视频～");
+    return;
+  }
+
+  videoModalTitle.textContent = `🎥 ${resolvedName} 的视频礼物`;
+  giftVideo.pause();
+  giftVideo.src = src;
+  giftVideo.currentTime = 0;
+
+  videoModal.classList.remove("hidden");
+  videoModal.setAttribute("aria-hidden", "false");
+
+  // 尝试自动播放（用户点击触发，成功率更高）
+  const p = giftVideo.play();
+  if (p && typeof p.catch === "function") {
+    p.catch(()=>{ /* 忽略，用户手动点播放即可 */ });
+  }
+
+  burst(6);
+}
+
+function closeVideoModal(){
+  giftVideo.pause();
+  giftVideo.removeAttribute("src"); // 关闭后停止加载
+  giftVideo.load();
+  videoModal.classList.add("hidden");
+  videoModal.setAttribute("aria-hidden", "true");
+}
+
+openBtn.addEventListener("click", openVideoModal);
+closeVideoBtn.addEventListener("click", closeVideoModal);
+videoModal.addEventListener("click", (e)=>{
+  if (e.target === videoModal) closeVideoModal();
+});
+
+/** ESC 关闭任意弹窗 */
+addEventListener("keydown", (e)=>{
+  if (e.key === "Escape") {
+    if (!giftModal.classList.contains("hidden")) closeGiftModal();
+    if (!videoModal.classList.contains("hidden")) closeVideoModal();
   }
 });
 
