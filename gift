@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🎁 New Year Gift</title>
+  <style>
+    :root{
+      --bg1:#070A12;
+      --bg2:#0B1630;
+      --card:#0e1b33cc;
+      --line:#ffffff24;
+      --text:#eaf2ff;
+      --muted:#b9c7e6;
+      --accent:#7cf7ff;
+      --accent2:#ff77e1;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; overflow-x:hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", Arial;
+      color:var(--text);
+      background: radial-gradient(900px 600px at 20% 10%, #182a55 0%, transparent 55%),
+                  radial-gradient(900px 600px at 90% 30%, #3a1247 0%, transparent 60%),
+                  linear-gradient(180deg,var(--bg1),var(--bg2));
+    }
+    canvas#fx{
+      position:fixed; inset:0; width:100%; height:100%;
+      pointer-events:none; z-index:1;
+    }
+    .wrap{
+      position:relative; z-index:2;
+      max-width:920px; margin:0 auto; padding:40px 18px 64px;
+    }
+    .top{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom:16px;
+    }
+    .badge{
+      display:inline-flex; gap:10px; align-items:center;
+      border:1px solid var(--line); border-radius:999px;
+      padding:8px 12px; background:#ffffff0f; backdrop-filter: blur(10px);
+      font-size:14px; color:var(--muted);
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, var(--accent), #0ff0);
+      box-shadow: 0 0 14px var(--accent);
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:22px;
+      background: linear-gradient(135deg,#ffffff14,#ffffff06);
+      box-shadow: 0 20px 60px #00000055;
+      overflow:hidden;
+    }
+    .hero{
+      padding:28px 22px 18px;
+      background: radial-gradient(900px 260px at 10% 10%, #7cf7ff22, transparent 60%),
+                  radial-gradient(900px 260px at 90% 10%, #ff77e122, transparent 60%);
+      border-bottom:1px solid var(--line);
+    }
+    h1{
+      margin:0;
+      font-size:28px;
+      letter-spacing:.5px;
+      line-height:1.2;
+    }
+    .sub{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.7;
+    }
+    .grid{
+      display:grid; gap:14px;
+      grid-template-columns: 1.2fr .8fr;
+      padding:18px 22px 22px;
+    }
+    @media (max-width: 820px){
+      .grid{grid-template-columns:1fr}
+    }
+    .panel{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--card);
+      padding:16px;
+    }
+    .kpi{
+      display:grid; grid-template-columns: repeat(4,1fr);
+      gap:10px; margin-top:10px;
+    }
+    @media (max-width: 520px){
+      .kpi{grid-template-columns: repeat(2,1fr)}
+    }
+    .k{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px 10px;
+      text-align:center;
+      background:#ffffff08;
+    }
+    .k b{display:block; font-size:22px}
+    .k span{display:block; margin-top:6px; color:var(--muted); font-size:12px}
+    .btns{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+    button{
+      border:1px solid var(--line);
+      background:#ffffff10;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      font-size:14px;
+      transition: transform .08s ease, background .2s ease;
+    }
+    button:hover{background:#ffffff16}
+    button:active{transform: translateY(1px)}
+    .primary{
+      border-color:#7cf7ff55;
+      background: linear-gradient(90deg,#7cf7ff22,#ff77e122);
+      box-shadow: 0 0 0 1px #7cf7ff22 inset;
+    }
+    .msg{
+      margin:0;
+      white-space:pre-wrap;
+      line-height:1.75;
+      font-size:15px;
+    }
+    .type{
+      display:inline-block;
+      border-right: 2px solid #ffffff66;
+      padding-right:2px;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50%{border-right-color: transparent} }
+    .small{color:var(--muted); font-size:12px; margin-top:10px}
+    .footer{
+      padding:14px 22px;
+      border-top:1px solid var(--line);
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      color:var(--muted); font-size:12px;
+    }
+    a{color:var(--accent)}
+    .hidden{display:none}
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      padding:10px 12px; border-radius:14px;
+      background:#000000aa; color:#fff; font-size:13px;
+      border:1px solid #ffffff2a; z-index:5;
+      opacity:0; pointer-events:none; transition:opacity .2s ease;
+    }
+    .toast.show{opacity:1}
+    @media (prefers-reduced-motion: reduce){
+      canvas#fx{display:none}
+      .type{animation:none; border-right:none}
+      button{transition:none}
+    }
+
+    /* ===== Password lock UI ===== */
+    button:disabled{opacity:.55; cursor:not-allowed}
+
+    .lock{
+      position:fixed; inset:0; z-index:10;
+      display:flex; align-items:center; justify-content:center;
+      padding:20px;
+      background: radial-gradient(800px 500px at 50% 20%, #ffffff14, transparent 60%),
+                rgba(0,0,0,.72);
+      backdrop-filter: blur(10px);
+    }
+    .lockCard{
+      width:min(520px, 100%);
+      border:1px solid #ffffff2a;
+      border-radius:22px;
+      padding:18px 16px 14px;
+      background: linear-gradient(135deg, #0e1b33ee, #0b1326ee);
+      box-shadow: 0 30px 90px #00000088;
+    }
+    .lockTitle{font-size:18px; margin:0 0 6px}
+    .lockSub{margin:0 0 14px; color:#b9c7e6; font-size:13px; line-height:1.6}
+    .lockRow{display:flex; gap:10px}
+    .lockRow input{
+      flex:1; padding:10px 12px; border-radius:14px;
+      border:1px solid #ffffff2a; background:#ffffff0a;
+      color:#eaf2ff; outline:none;
+    }
+    .lockRow input:focus{border-color:#7cf7ff55}
+    .lockErr{margin:10px 0 0; color:#ffb2d8; font-size:12px; min-height:16px}
+  </style>
+</head>
+<body>
+  <canvas id="fx"></canvas>
+
+  <div class="wrap">
+    <div class="top">
+      <div class="badge"><span class="dot"></span><span id="meta">Loading…</span></div>
+      <div class="badge">🎆 代码小礼物</div>
+    </div>
+
+    <div class="card">
+      <div class="hero">
+        <h1 id="title">给 <span id="toName">你</span> 的跨年礼物</h1>
+        <p class="sub" id="subText">
+          输入你的生日（YYYYMMDD）解锁。<br/>
+          （可选）如果你想给每个人一个“专属链接”，用 ?k=cici 这种方式。
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+            <div>
+              <div style="color:var(--muted);font-size:13px">距离新年的时间</div>
+              <div class="kpi" aria-label="countdown">
+                <div class="k"><b id="dd">--</b><span>天</span></div>
+                <div class="k"><b id="hh">--</b><span>小时</span></div>
+                <div class="k"><b id="mm">--</b><span>分钟</span></div>
+                <div class="k"><b id="ss">--</b><span>秒</span></div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="color:var(--muted);font-size:12px">From</div>
+              <div style="font-size:14px;margin-top:6px" id="fromName">Steven</div>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button class="primary" id="openBtn">🎁 现在拆礼物</button>
+            <button id="newWishBtn">✨ 换一句祝福</button>
+            <button id="copyBtn">🔗 复制链接</button>
+            <button id="boomBtn">🎆 放一次烟花</button>
+          </div>
+
+          <p class="small" id="smallNote">
+            说明：你可以发同一个链接给所有人（不需要 to 参数）。<br/>
+            输入生日后，页面会自动显示对应名字，并显示“属于这个人”的祝福内容。
+          </p>
+        </div>
+
+        <div class="panel">
+          <div style="color:var(--muted);font-size:13px;margin-bottom:10px">礼物内容</div>
+          <p class="msg" id="msg">
+            <span id="typed" class="type">🔒 输入生日解锁后可见</span>
+          </p>
+          <div id="extra" class="hidden" style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px;">
+            <div style="color:var(--muted);font-size:12px">🎯 新年小任务（可选）</div>
+            <ul style="margin:8px 0 0; padding-left:18px; line-height:1.7;">
+              <li>选一个你想坚持的习惯，坚持 7 天。</li>
+              <li>把这一页转发给 1 个你在乎的人。</li>
+              <li>给自己写一句“明年我希望你___”。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>Made By Yuxuan Lin</div>
+        <div>Tip: 部署到 GitHub Pages 体验最佳</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Lock -->
+  <div class="lock" id="lock">
+    <div class="lockCard">
+      <p class="lockTitle">🔒 输入你的生日来拆礼物</p>
+      <p class="lockSub" id="lockHint">请输入 8 位数字：YYYYMMDD（例如 19990506）</p>
+
+      <div class="lockRow">
+        <input
+          id="passInput"
+          type="password"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="YYYYMMDD"
+          maxlength="8"
+          pattern="\d{8}"
+        />
+        <button class="primary" id="unlockBtn">解锁</button>
+      </div>
+      <div class="lockErr" id="lockErr"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">已复制</div>
+
+<script>
+/** ----------------------------
+ * URL params:
+ *   ?from=Name (optional)
+ *   ?k=personKey (optional: 专属链接模式)
+ * ---------------------------- */
+const qs = new URLSearchParams(location.search);
+const from = (qs.get("from") || "Steven").trim().slice(0, 24);
+document.getElementById("fromName").textContent = from;
+
+// DOM refs
+const typedEl = document.getElementById("typed");
+const openBtn = document.getElementById("openBtn");
+const newWishBtn = document.getElementById("newWishBtn");
+const copyBtn = document.getElementById("copyBtn");
+const boomBtn = document.getElementById("boomBtn");
+const dd = document.getElementById("dd");
+const hh = document.getElementById("hh");
+const mm = document.getElementById("mm");
+const ss = document.getElementById("ss");
+
+/** ----------------------------
+ * Countdown
+ * ---------------------------- */
+const now = new Date();
+const nextYear = now.getFullYear() + 1;
+const target = new Date(nextYear, 0, 1, 0, 0, 0);
+document.getElementById("meta").textContent =
+  `现在是 ${now.toLocaleString()} · 目标：${target.toLocaleString()}`;
+
+function pad(n){ return String(n).padStart(2,"0"); }
+
+/** ----------------------------
+ * Fireworks
+ * ---------------------------- */
+const canvas = document.getElementById("fx");
+const ctx = canvas.getContext("2d");
+let W=0,H=0, DPR=1;
+
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = canvas.width = Math.floor(innerWidth * DPR);
+  H = canvas.height = Math.floor(innerHeight * DPR);
+  canvas.style.width = innerWidth + "px";
+  canvas.style.height = innerHeight + "px";
+}
+addEventListener("resize", resize);
+resize();
+
+const particles = [];
+function rand(a,b){ return a + Math.random()*(b-a); }
+
+function launch(x, y){
+  const count = Math.floor(rand(60, 110));
+  for(let i=0;i<count;i++){
+    const ang = rand(0, Math.PI*2);
+    const spd = rand(1.0, 5.2) * DPR;
+    particles.push({
+      x, y,
+      vx: Math.cos(ang)*spd,
+      vy: Math.sin(ang)*spd,
+      life: rand(40, 90),
+      age: 0,
+      hue: rand(160, 330)
+    });
+  }
+}
+
+function burst(times=5){
+  for(let i=0;i<times;i++){
+    const x = rand(W*0.15, W*0.85);
+    const y = rand(H*0.15, H*0.55);
+    launch(x,y);
+  }
+}
+
+function step(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "rgba(0,0,0,0.18)";
+  ctx.fillRect(0,0,W,H);
+
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.age++;
+    const t = p.age / p.life;
+    p.vx *= 0.988;
+    p.vy = p.vy*0.988 + 0.03*DPR;
+    p.x += p.vx;
+    p.y += p.vy;
+
+    const alpha = Math.max(0, 1 - t);
+    ctx.beginPath();
+    ctx.fillStyle = `hsla(${p.hue},100%,70%,${alpha})`;
+    ctx.arc(p.x, p.y, Math.max(1.0, 2.0*(1-t))*DPR, 0, Math.PI*2);
+    ctx.fill();
+
+    if(p.age >= p.life) particles.splice(i,1);
+  }
+  requestAnimationFrame(step);
+}
+step();
+
+/** ----------------------------
+ * Toast
+ * ---------------------------- */
+const toast = document.getElementById("toast");
+function showToast(txt){
+  toast.textContent = txt;
+  toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"), 900);
+}
+
+/** ----------------------------
+ * Per-person data (每个人独立内容)
+ * 你只要改这里：birthday / name / wishes / newYear
+ * ---------------------------- */
+const PEOPLE_BY_BDAY = {
+  "20050309": {
+    name: "Steven",
+    wishes: [
+      (n,y,f)=>`🎁 ${n}，${y} 送你一句最重要的：\n\n别把所有事都一个人扛。\n你可以强，但也值得被照顾。\n\n—— ${f}`,
+      (n,y,f)=>`🌙 ${n}，${y} 想送你一种“松弛”：\n\n把焦虑交给行动\n把目标拆成今天\n把自己当成队友\n\n—— ${f}`,
+      (n,y,f)=>`🎇 ${n}，好运指令已下发：\n\nif (你先照顾好自己) {\n  好运++; \n}\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 生活有光\n- 代码顺滑\n- 睡眠安稳\n- 心里更松一点\n\n—— ${f}`
+  },
+  "20040210": {
+    name: "CiCi",
+    wishes: [
+      (n,y,f)=>`🧧 ${n}，${y} 给你三句“放心”：\n\n放心去尝试\n放心去发光\n放心去被爱\n\n—— ${f}`,
+      (n,y,f)=>`✨ ${n}，愿你 ${y}：\n\n遇到好人\n做成好事\n得到好消息\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 事事顺意\n- 好运常在\n- 开心更久\n\n—— ${f}`
+  },
+  "20040611": {
+    name: "Manda",
+    wishes: [
+      (n,y,f)=>`🌙 ${n}，愿你 ${y}：\n\n把热爱变成作品\n把努力变成结果\n把温柔留给自己\n\n—— ${f}`,
+      (n,y,f)=>`🎁 ${n}，${y} 送你一个祝福：\n\n你值得被认真对待。\n每一步都算数。\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 平安喜乐\n- 心想事成\n\n—— ${f}`
+  },
+  "20040510": {
+    name: "Michelle",
+    wishes: [
+      (n,y,f)=>`✨ ${n}，${y} 送你三个“允许”：\n\n允许自己慢一点\n允许偶尔不完美\n允许被爱、被支持\n\n—— ${f}`,
+      (n,y,f)=>`🎇 ${n}，愿你 ${y}：\n\n更清醒，也更柔软\n更坚定，也更轻松\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 温柔坚定\n- 好运加倍\n\n—— ${f}`
+  },
+  "20030717": {
+    name: "哥",
+    wishes: [
+      (n,y,f)=>`🧧 ${n}，${y} 祝你：\n\n顺风顺水\n发财发福（也别太累）\n\n—— ${f}`,
+      (n,y,f)=>`🎁 ${n}，愿你 ${y}：\n\n少一点烦心事\n多一点好消息\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 事业顺利\n- 家里平安\n\n—— ${f}`
+  },
+  "20041105": {
+    name: "杨旭",
+    wishes: [
+      (n,y,f)=>`✨ ${n}，愿你 ${y}：\n\n一直有底气\n一直有选择\n一直有热爱\n\n—— ${f}`,
+      (n,y,f)=>`🎇 ${n}，好运指令：\n\n保持你的节奏。\n你会越走越稳。\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 一路开挂\n- 心情轻松\n\n—— ${f}`
+  },
+  "19800806": {
+    name: "爸",
+    wishes: [
+      (n,y,f)=>`🧧 ${n}，${y} 祝您：\n\n身体健康\n事事顺心\n天天开心\n\n—— ${f}`,
+      (n,y,f)=>`🎁 ${n}，愿您 ${y}：\n\n少操心，多休息\n平平安安，顺顺利利\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿您在 ${y}：\n- 平安健康\n- 福气满满\n\n—— ${f}`
+  },
+  "19791120": {
+    name: "妈",
+    wishes: [
+      (n,y,f)=>`🧧 ${n}，${y} 祝您：\n\n身体健康\n笑口常开\n万事如意\n\n—— ${f}`,
+      (n,y,f)=>`🎁 ${n}，愿您 ${y}：\n\n少烦恼，多开心\n每天都轻轻松松\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿您在 ${y}：\n- 健康平安\n- 开开心心\n\n—— ${f}`
+  },
+  "20050401": {
+    name: "夏仁宇",
+    wishes: [
+      (n,y,f)=>`🌙 ${n}，愿你 ${y}：\n\n把心事交给月光\n把目标交给今天\n把结果交给时间\n\n—— ${f}`,
+      (n,y,f)=>`🎇 ${n}，好运来得很具体：\n\n好机会、好状态、好心情\n全都在路上。\n\n—— ${f}`
+    ],
+    newYear: (n,y,f)=>`🎉 ${n}，新年快乐！\n\n愿你在 ${y}：\n- 万事顺意\n- 好运常在\n\n—— ${f}`
+  },
+};
+
+/** ----------------------------
+ * Optional: 专属链接模式 ?k=xxx
+ * 例：?k=cici 只能用 cici 的生日解锁
+ * ---------------------------- */
+const KEY_TO_BDAY = {
+  steven: "20050309",
+  cici: "20040210",
+  manda: "20040611",
+  michelle: "20040510",
+  ge: "20030717",
+  yangxu: "20041105",
+  dad: "19800806",
+  mom: "19791120",
+  xiarenyu: "20050401",
+};
+
+const personKey = (qs.get("k") || "").trim().toLowerCase();
+const forcedBday = KEY_TO_BDAY[personKey] || "";
+const forcedProfile = forcedBday ? PEOPLE_BY_BDAY[forcedBday] : null;
+
+/** ----------------------------
+ * Lock / input restriction
+ * ---------------------------- */
+const lockEl = document.getElementById("lock");
+const passInput = document.getElementById("passInput");
+const unlockBtn = document.getElementById("unlockBtn");
+const lockErr = document.getElementById("lockErr");
+
+const lockedButtons = [openBtn, newWishBtn, copyBtn, boomBtn];
+lockedButtons.forEach(b => b.disabled = true);
+
+let unlocked = false;
+let pendingNewYear = false;
+
+let resolvedName = "你";
+let activeProfile = null;
+
+function normalizeBirthday(input){
+  return String(input || "").trim().replace(/\D/g, "");
+}
+
+function setHint(msg){ lockErr.textContent = msg || ""; }
+
+function applyName(name){
+  resolvedName = name;
+  const el = document.getElementById("toName");
+  if (el) el.textContent = name;
+}
+
+function typeOut(text){
+  if(window.__typingTimer) clearInterval(window.__typingTimer);
+  typedEl.textContent = "";
+  let i = 0;
+  window.__typingTimer = setInterval(()=>{
+    typedEl.textContent += text[i++] || "";
+    if(i > text.length) clearInterval(window.__typingTimer);
+  }, 18);
+}
+
+function pickWish(){
+  const list = (activeProfile && activeProfile.wishes && activeProfile.wishes.length)
+    ? activeProfile.wishes
+    : [
+        (n,y,f)=>`🎁 ${n}，提前祝你 ${y} 新年快乐！\n\n愿你：\n1) 有更自由的选择\n2) 有更稳定的内核\n3) 有更温柔的好运\n\n—— ${f}`,
+        (n,y,f)=>`✨ ${n}，${y} 送你三个“允许”：\n\n允许自己慢一点\n允许偶尔不完美\n允许被爱、被支持\n\n—— ${f}`,
+      ];
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function newWish(){
+  const f = pickWish();
+  typeOut(f(resolvedName, nextYear, from));
+}
+
+function showNewYearMessage(){
+  const txt = (activeProfile && activeProfile.newYear)
+    ? activeProfile.newYear(resolvedName, nextYear, from)
+    : `🎉 ${resolvedName}，新年快乐！\n\n愿你在 ${nextYear}：\n- 生活有光\n- 代码顺滑\n- 睡眠安稳\n- 心里更松一点\n\n—— ${from}`;
+  typeOut(txt);
+  document.getElementById("extra").classList.remove("hidden");
+  burst(8);
+}
+
+function afterUnlock(){
+  unlocked = true;
+  lockEl.style.display = "none";
+  lockedButtons.forEach(b => b.disabled = false);
+
+  document.getElementById("extra").classList.remove("hidden");
+  burst(3);
+
+  if (pendingNewYear) {
+    pendingNewYear = false;
+    showNewYearMessage();
+  } else {
+    newWish();
+  }
+}
+
+/** 实时输入限制：只能数字 + 最多8位 + 提示 */
+passInput.addEventListener("input", () => {
+  let v = passInput.value.replace(/\D/g, "");
+  if (v.length > 8) v = v.slice(0, 8);
+  if (passInput.value !== v) passInput.value = v;
+
+  if (forcedProfile) {
+    if (v.length === 0) setHint(`此链接属于「${forcedProfile.name}」，请输入 TA 的 8 位生日`);
+    else if (v.length < 8) setHint(`还差 ${8 - v.length} 位`);
+    else setHint("已输入 8 位 ✅ 可以解锁");
+  } else {
+    if (v.length === 0) setHint("请输入 8 位生日：YYYYMMDD");
+    else if (v.length < 8) setHint(`还差 ${8 - v.length} 位`);
+    else setHint("已输入 8 位 ✅ 可以解锁");
+  }
+});
+
+// 初始提示
+if (forcedProfile) setHint(`此链接属于「${forcedProfile.name}」，请输入 TA 的 8 位生日`);
+else setHint("请输入 8 位生日：YYYYMMDD");
+
+function tryUnlock(){
+  lockErr.textContent = "";
+  const normalized = normalizeBirthday(passInput.value);
+
+  if (normalized.length !== 8) {
+    lockErr.textContent = "格式不对：请输入 8 位 YYYYMMDD（例如 19990506）";
+    return;
+  }
+
+  // 专属链接模式：必须匹配指定生日
+  if (forcedProfile) {
+    if (normalized !== forcedBday) {
+      lockErr.textContent = "生日不匹配这个专属链接，再试一次～";
+      passInput.select();
+      return;
+    }
+    activeProfile = forcedProfile;
+    applyName(activeProfile.name);
+    afterUnlock();
+    return;
+  }
+
+  // 通用模式：用生日找人
+  const profile = PEOPLE_BY_BDAY[normalized];
+  if (!profile) {
+    lockErr.textContent = "这个生日不在名单里（或你输错了），再试一次～";
+    passInput.select();
+    return;
+  }
+
+  activeProfile = profile;
+  applyName(profile.name);
+  afterUnlock();
+}
+
+unlockBtn.addEventListener("click", tryUnlock);
+passInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") tryUnlock(); });
+
+/** Buttons behavior (only after unlocked) */
+openBtn.addEventListener("click", ()=>{
+  if (!unlocked) return;
+  newWish();
+  burst(6);
+});
+newWishBtn.addEventListener("click", ()=>{
+  if (!unlocked) return;
+  newWish();
+  burst(3);
+});
+boomBtn.addEventListener("click", ()=>{
+  if (!unlocked) return;
+  burst(7);
+});
+
+/** Copy link */
+copyBtn.addEventListener("click", async ()=>{
+  const url = new URL(location.href);
+  url.searchParams.set("from", from);
+  url.searchParams.delete("to");
+
+  // 如果当前是专属链接模式，就保留 k；否则删除 k（同链接给所有人）
+  if (forcedProfile) url.searchParams.set("k", personKey);
+  else url.searchParams.delete("k");
+
+  try{
+    await navigator.clipboard.writeText(url.toString());
+    showToast(forcedProfile ? "已复制专属链接 ✅" : "已复制通用链接 ✅");
+  }catch(e){
+    showToast("复制失败：请手动复制地址栏");
+  }
+});
+
+/** Countdown tick */
+function tick(){
+  const t = target.getTime() - Date.now();
+  const done = t <= 0;
+  const total = Math.max(0, t);
+
+  const sec = Math.floor(total / 1000);
+  const days = Math.floor(sec / 86400);
+  const hours = Math.floor((sec % 86400) / 3600);
+  const mins = Math.floor((sec % 3600) / 60);
+  const secs = sec % 60;
+
+  dd.textContent = pad(days);
+  hh.textContent = pad(hours);
+  mm.textContent = pad(mins);
+  ss.textContent = pad(secs);
+
+  if(done && !tick.fired){
+    tick.fired = true;
+    if (unlocked) showNewYearMessage();
+    else pendingNewYear = true;
+  }
+}
+setInterval(tick, 200);
+tick();
+</script>
+</body>
+</html>
